@@ -146,6 +146,7 @@ const startUpdating = (
   if (typeof geoArray !== "undefined" && geoArray.length > 0) {
     geoArray.forEach(geo => {
       const entry = _.get(data, geo);
+      console.log(data + " " + geo);
       if (entry) {
         _.set(data, geo, new admin.firestore.GeoPoint(
           entry._latitude,
