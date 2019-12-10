@@ -1,5 +1,6 @@
 import * as admin from "firebase-admin";
 import * as fs from "fs";
+import * as _ from "lodash";
 
 /**
  * Convert time array in document object
@@ -8,11 +9,15 @@ import * as fs from "fs";
  */
 const updateTime = (dateArray, documentObj): void => {
   dateArray.forEach(c => {
-    c.split(".").reduce((acc, cur, i, a) => {
-      if (!a[i + 1] && acc[cur] && acc[cur]._seconds) {
-        acc[cur] = new Date(acc[cur]._seconds * 1000);
-      } else return acc[cur] || {};
-    }, documentObj);
+    // c.split(".").reduce((acc, cur, i, a) => {
+    //   if (!a[i + 1] && acc[cur] && acc[cur]._seconds) {
+    //     acc[cur] = new Date(acc[cur]._seconds * 1000);
+    //   } else return acc[cur] || {};
+    // }, documentObj);
+    const entry = _.get(documentObj, c);
+    if (entry) {
+      _.set(documentObj, c, new Date(entry._seconds * 1000));
+    }
   });
 };
 
@@ -45,7 +50,7 @@ export const restore = (
           reject({ status: false, message: error.message });
         });
     } else {
-      fs.readFile(fileName, "utf8", function(err, data) {
+      fs.readFile(fileName, "utf8", function (err, data) {
         if (err) {
           console.log(err);
           reject({ status: false, message: err.message });
@@ -134,17 +139,18 @@ const startUpdating = (
   let parameterValid = true;
 
   if (typeof dateArray === "object" && dateArray.length > 0) {
-    updateTime(dateArray, data);    
+    updateTime(dateArray, data);
   }
 
   // Enter geo value
   if (typeof geoArray !== "undefined" && geoArray.length > 0) {
     geoArray.forEach(geo => {
-      if (data.hasOwnProperty(geo)) {
-        data[geo] = new admin.firestore.GeoPoint(
-          data[geo]._latitude,
-          data[geo]._longitude
-        );
+      const entry = _.get(data, geo);
+      if (entry) {
+        _.set(data, geo, new admin.firestore.GeoPoint(
+          entry._latitude,
+          entry._longitude
+        ));
       } else {
         console.log("Please check your geo parameters!!!", geoArray);
         parameterValid = false;
