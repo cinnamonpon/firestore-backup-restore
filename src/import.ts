@@ -17,6 +17,8 @@ const updateTime = (dateArray, documentObj): void => {
     const entry = _.get(documentObj, c);
     if (entry) {
       _.set(documentObj, c, new Date(entry._seconds * 1000));
+    } else {
+      _.set(documentObj, c, new Date());
     }
   });
 };
